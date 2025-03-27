@@ -93,3 +93,15 @@ fn item_to_json(item: Item) -> String {
   ])
   |> json.to_string
 }
+
+pub fn delete_item(req: Request, ctx: Context, item_id: String) {
+  let current_items = ctx.items
+
+  let json_items = {
+    list.filter(current_items, fn(item) { item.id != item_id })
+    |> todos_to_json
+  }
+
+  wisp.redirect("/")
+  |> wisp.set_cookie(req, "items", json_items, wisp.PlainText, 60 * 60 * 24)
+}
