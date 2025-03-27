@@ -105,3 +105,29 @@ pub fn delete_item(req: Request, ctx: Context, item_id: String) {
   wisp.redirect("/")
   |> wisp.set_cookie(req, "items", json_items, wisp.PlainText, 60 * 60 * 24)
 }
+
+pub fn patch_toggle_todo(req: Request, ctx: Context, item_id: String) {
+  let current_items = ctx.items
+
+  let result = {
+    use _ <- result.try(
+      list.find(current_items, fn(item) { item.id == item_id }),
+    )
+    list.map(current_items, fn(item) {
+      case item.id == item_id {
+        True -> item.toggle_todo(item)
+        False -> item
+      }
+    })
+    |> todos_to_json
+    |> Ok
+  }
+
+  case result {
+    Ok(todos) -> {
+      wisp.redirect("/")
+      |> wisp.set_cookie(req, "items", todos, wisp.PlainText, 60 * 60 * 24)
+    }
+    Error(_) -> wisp.bad_request()
+  }
+}
